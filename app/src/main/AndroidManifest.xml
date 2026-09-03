@@ -2,6 +2,43 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <!--
+        Why these permissions exist even though this project has "no internet
+        communication" in the product sense (no signaling server, no STUN/TURN,
+        no backend):
+
+        - CAMERA / RECORD_AUDIO: we still capture real camera + microphone data
+          into VideoTrack/AudioTrack, exactly like Project #1.
+
+        - INTERNET / ACCESS_NETWORK_STATE: WebRTC's ICE agent opens real UDP
+          sockets on the device's local network interfaces to gather "host"
+          ICE candidates (see Part 12/14 of the learning guide), and it queries
+          ConnectivityManager to know which interfaces exist. Android's socket
+          APIs and ConnectivityManager both require these permissions even
+          when every packet stays on the same device / local network and never
+          reaches an external server. No signaling data or media leaves this
+          app process in this project.
+
+        - MODIFY_AUDIO_SETTINGS: WebRTC's audio device module configures the
+          Android audio routing (speaker/earpiece, audio mode) when it starts
+          capturing/playing audio.
+    -->
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
+
+    <uses-feature
+        android:name="android.hardware.camera"
+        android:required="true" />
+    <uses-feature
+        android:name="android.hardware.camera.autofocus"
+        android:required="false" />
+    <uses-feature
+        android:name="android.hardware.microphone"
+        android:required="true" />
+
     <application
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"

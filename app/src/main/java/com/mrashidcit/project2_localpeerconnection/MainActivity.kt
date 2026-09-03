@@ -4,14 +4,10 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
+import com.mrashidcit.project2_localpeerconnection.presentation.call.LocalPeerConnectionScreen
 import com.mrashidcit.project2_localpeerconnection.ui.theme.Project2LocalPeerConnectionTheme
+
+
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -19,29 +15,25 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             Project2LocalPeerConnectionTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(
-                        name = "Android",
-                        modifier = Modifier.padding(innerPadding)
-                    )
-                }
+                LocalPeerConnectionScreen()
             }
         }
     }
 }
 
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    Project2LocalPeerConnectionTheme {
-        Greeting("Android")
-    }
-}
+/*
+ * Deliberately thin: MainActivity's only job is to host the Compose tree and
+ * apply the app theme. Everything WebRTC-related lives in
+ * presentation/call/* and webrtc/* - see LocalPeerConnectionScreen.kt for
+ * where the real project starts. LocalPeerConnectionScreen owns its own
+ * Scaffold, so MainActivity does not add a second one.
+ *
+ * PART 20 - Android lifecycle note: this project uses a single Activity with
+ * a single ViewModel obtained via `viewModel()`. Jetpack's ViewModel already
+ * survives configuration changes (e.g. screen rotation) by design - the
+ * WebRTC objects living inside LocalPeerConnectionViewModel are NOT
+ * recreated on rotation, only the Compose UI recomposes around them. The
+ * camera/PeerConnections are only torn down when the ViewModel itself is
+ * cleared (the user presses "Close", or this Activity finishes for good) -
+ * see LocalPeerConnectionViewModel.onCleared().
+*/
