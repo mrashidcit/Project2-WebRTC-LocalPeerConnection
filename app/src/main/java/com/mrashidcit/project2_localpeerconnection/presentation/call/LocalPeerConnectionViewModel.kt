@@ -1,6 +1,7 @@
 package com.mrashidcit.project2_localpeerconnection.presentation.call
 
 import android.app.Application
+import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.mrashidcit.project2_localpeerconnection.model.PeerConnectionState
@@ -43,6 +44,8 @@ class LocalPeerConnectionViewModel(application: Application) : AndroidViewModel(
         private const val LOCAL_STREAM_ID = "LOCAL_STREAM"
     }
 
+    private val tag = LocalPeerConnectionViewModel::class.java.simpleName
+
     private val webRtcManager = WebRtcManager(application)
 
     /** Exposed so the Compose screen can init its SurfaceViewRenderer with the same GL context WebRTC uses internally. */
@@ -78,6 +81,8 @@ class LocalPeerConnectionViewModel(application: Application) : AndroidViewModel(
     fun clearError() {
         _uiState.update { it.copy(error = null) }
     }
+
+
 
     /**
      * STEP 1-6 of the required sequence:
@@ -117,6 +122,8 @@ class LocalPeerConnectionViewModel(application: Application) : AndroidViewModel(
                     onIceCandidateGenerated = { candidate ->
                         candidatesFromA.add(candidate)
                         _uiState.update { it.copy(pendingIceCandidateCount = candidatesFromA.size + candidatesFromB.size) }
+
+                        Log.d(tag, "onCreatePeersClicked - peerConnectionA - candidate: $candidate")
                     },
                     onIceConnectionStateChanged = { /* logged inside PeerConnectionManager already */ },
                     onConnectionStateChanged = { webRtcState ->
@@ -142,6 +149,8 @@ class LocalPeerConnectionViewModel(application: Application) : AndroidViewModel(
                     onIceCandidateGenerated = { candidate ->
                         candidatesFromB.add(candidate)
                         _uiState.update { it.copy(pendingIceCandidateCount = candidatesFromA.size + candidatesFromB.size) }
+                        Log.d(tag, "onCreatePeersClicked - peerConnectionB - candidate: ${candidate.toString()}")
+                        onExchangeIceClicked()
                     },
                     onIceConnectionStateChanged = { },
                     onConnectionStateChanged = { webRtcState ->
@@ -162,7 +171,13 @@ class LocalPeerConnectionViewModel(application: Application) : AndroidViewModel(
                 newPeerConnectionA.addLocalVideoTrack(localVideoTrack, LOCAL_STREAM_ID)
                 newPeerConnectionA.addLocalAudioTrack(localAudioTrack, LOCAL_STREAM_ID)
 
-                _uiState.update { it.copy(peersCreated = true) }
+                _uiState.update {
+                    it.copy(
+                        peersCreated = true,
+                        hasLocalVideo = true,
+                        localVideoTrack = localVideoTrack
+                    )
+                }
             }.onFailure { throwable ->
                 showError(throwable.message ?: "Unknown error while creating peers")
             }

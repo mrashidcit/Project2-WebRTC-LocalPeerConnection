@@ -89,11 +89,22 @@ fun LocalPeerConnectionScreen(
                 style = MaterialTheme.typography.headlineSmall
             )
 
-            RemoteVideoBox(
-                hasRemoteVideo = uiState.hasRemoteVideo,
-                eglBaseContext = viewModel.eglBaseContext,
-                videoTrack = uiState.remoteVideoTrack
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                LocaleVideoBox(
+                    modifier = Modifier.weight(0.5f),
+                    hasLocaleVideo = uiState.hasLocalVideo,
+                    eglBaseContext = viewModel.eglBaseContext,
+                    videoTrack = uiState.localVideoTrack
+                )
+                RemoteVideoBox(
+                    modifier = Modifier.weight(0.5f),
+                    hasRemoteVideo = uiState.hasRemoteVideo,
+                    eglBaseContext = viewModel.eglBaseContext,
+                    videoTrack = uiState.remoteVideoTrack
+                )
+            }
 
             Text(
                 text = "Connection: ${uiState.connectionState}",
@@ -141,13 +152,13 @@ fun LocalPeerConnectionScreen(
 
 @Composable
 private fun RemoteVideoBox(
+    modifier: Modifier = Modifier,
     hasRemoteVideo: Boolean,
     eglBaseContext: org.webrtc.EglBase.Context,
     videoTrack: org.webrtc.VideoTrack?
 ) {
     Box(
-        modifier = Modifier
-            .fillMaxWidth()
+        modifier = modifier
             .height(220.dp)
             .background(MaterialTheme.colorScheme.surfaceVariant),
         contentAlignment = Alignment.Center
@@ -165,22 +176,23 @@ private fun RemoteVideoBox(
 
 @Composable
 private fun LocaleVideoBox(
+    modifier: Modifier = Modifier,
     hasLocaleVideo: Boolean,
     eglBaseContext: org.webrtc.EglBase.Context,
     videoTrack: org.webrtc.VideoTrack?
 ) {
     Box(
-        modifier = Modifier
-            .fillMaxWidth()
+        modifier = modifier
             .height(220.dp)
             .background(MaterialTheme.colorScheme.surfaceVariant),
         contentAlignment = Alignment.Center
     ) {
-        if (hasRemoteVideo) {
-            Text(
-                text =
-            )
+        if (hasLocaleVideo) {
             RemoteVideoRenderer(eglBaseContext = eglBaseContext, videoTrack = videoTrack)
+            Text(
+                text = "Peer A track",
+                modifier = Modifier.align(Alignment.TopCenter)
+            )
         } else {
             Text(
                 text = "Local Video\n(waiting for Peer A track)",
@@ -222,11 +234,6 @@ private fun ControlButtons(
                 modifier = Modifier.weight(1f)
             ) { Text("Create Answer") }
 
-            Button(
-                onClick = onExchangeIceClicked,
-                enabled = peersCreated,
-                modifier = Modifier.weight(1f)
-            ) { Text("Exchange ICE ($pendingIceCandidateCount)") }
         }
         Button(
             onClick = onCloseClicked,

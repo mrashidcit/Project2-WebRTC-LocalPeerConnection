@@ -26,6 +26,8 @@ data class LocalPeerConnectionUiState(
     val logs: List<String> = emptyList(),
     val hasRemoteVideo: Boolean = false,
     val remoteVideoTrack: VideoTrack? = null,
+    val hasLocalVideo: Boolean = false,
+    val localVideoTrack: VideoTrack? = null,
     val error: String? = null,
     val peersCreated: Boolean = false,
     val offerAnswerExchanged: Boolean = false,
