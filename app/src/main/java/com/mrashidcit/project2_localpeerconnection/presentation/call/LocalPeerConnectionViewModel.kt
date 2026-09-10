@@ -42,11 +42,13 @@ class LocalPeerConnectionViewModel(application: Application) : AndroidViewModel(
 
     companion object {
         private const val LOCAL_STREAM_ID = "LOCAL_STREAM"
+        private const val REMOTE_STREAM_ID = "REMOTE_STREAM"
     }
 
     private val tag = LocalPeerConnectionViewModel::class.java.simpleName
 
     private val webRtcManager = WebRtcManager(application)
+    private val webRtcManager2 = WebRtcManager(application)
 
     /** Exposed so the Compose screen can init its SurfaceViewRenderer with the same GL context WebRTC uses internally. */
     val eglBaseContext get() = webRtcManager.eglBaseContext
@@ -134,8 +136,8 @@ class LocalPeerConnectionViewModel(application: Application) : AndroidViewModel(
                     // to receive a remote video/audio track back, so these are
                     // no-ops. (Exercise 4 in the learning guide asks you to make
                     // this project bidirectional - then these would matter too.)
-                    onRemoteVideoTrack = { },
-                    onRemoteAudioTrack = { },
+                    onRemoteVideoTrack = { track -> onVideoTrackReceivedFromPeerB(track) },
+                    onRemoteAudioTrack = { track -> onAudioTrackReceivedFromPeerB(track) },
                     log = ::appendLog
                 )
                 peerConnectionA = newPeerConnectionA
@@ -186,14 +188,26 @@ class LocalPeerConnectionViewModel(application: Application) : AndroidViewModel(
 
     private fun onRemoteVideoTrackReceived(track: VideoTrack) {
         appendLog("[WebRTC] Remote video track received")
+        Log.d(tag, "[WebRTC] Remote video track received")
         _uiState.update { it.copy(hasRemoteVideo = true, remoteVideoTrack = track) }
     }
+
+    private fun onVideoTrackReceivedFromPeerB(track: VideoTrack) {
+        appendLog("[WebRTC] Remote video track received from PeerB")
+        Log.d(tag, "[WebRTC] Remote video track received from PeerB")
+    }
+
+
 
     private fun onRemoteAudioTrackReceived(@Suppress("UNUSED_PARAMETER") track: AudioTrack) {
         // No UI needed for audio - WebRTC plays an enabled remote AudioTrack
         // through the device's speaker automatically. We only log it so the
         // full "remote media arrived" story is visible (PART 15).
         appendLog("[WebRTC] Remote audio track received")
+    }
+
+    private fun onAudioTrackReceivedFromPeerB(@Suppress("UNUSED_PARAMETER") track: AudioTrack) {
+        appendLog("[WebRTC] Remote audio track received from PeerB")
     }
 
     /*** STEP 6-9 of the required sequence:
@@ -228,6 +242,12 @@ class LocalPeerConnectionViewModel(application: Application) : AndroidViewModel(
                 // Step 9
                 peerB.setRemoteDescription(offer)
                 appendLog("[WebRTC] Peer B remote description set")
+
+                webRtcManager2.initialize(::appendLog)
+                val peerBVideoTrack = webRtcManager2.createLocalVideoTrack(::appendLog)
+                val peerBAudioTrack = webRtcManager2.createLocalAudioTrack(::appendLog)
+                peerB.addLocalVideoTrack(peerBVideoTrack, REMOTE_STREAM_ID)
+                peerB.addLocalAudioTrack(peerBAudioTrack, REMOTE_STREAM_ID)
 
                 _uiState.update { it.copy(offerAnswerExchanged = false) }
             }.onFailure { throwable ->
