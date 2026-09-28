@@ -9,6 +9,8 @@
 /.idea/assetWizardSettings.xml
 /.idea/deploymentTargetSelector.xml
 
+/.kotlin/sessions
+
 .DS_Store
 /build
 /captures
